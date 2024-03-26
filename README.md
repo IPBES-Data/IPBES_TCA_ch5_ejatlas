@@ -6,7 +6,7 @@
 
 This repository is part of an ongoing IPBES project.
 
-The authors do not take any responsibility for it's copntent or the correct working of the code. If scripts in here wipe your data, you are on your own.
+The authors do not take any responsibility for it's content or the correct working of the code. If scripts in here wipe your data, you are on your own.
 
 Nevertheless, please feel free to browse the code and re-use it at your own risk. 
 
@@ -20,22 +20,22 @@ The info in `% %` need to be changed to the appropriate values. In addition, the
 
 ## Metadata
 
-- **Project name**: %PROJECT_NAME%
-- **Assessment**: %ASSESSMENT%
-- **Chapter**: %CHAPTER%
+- **Project name**: Social Movement analysis with EJatlas data
+- **Assessment**: TCA
+- **Chapter**: 5
 - **Short Name**: %SHORT_NAME%
 
-- **Requested by**:
-- **Requested in/during**:
+- **Requested by**: Victoria Reyes Garcia
+- **Requested in/during**: Meeting with Data TSU in mid March
 
 - **Context**:
 - **Relevant chapters**:
 - **Task(s)**:
-- **Contact point from the expert team**:
-- **Contact point from assessment tsu**:
-- **Contact point from data tsu**:
-- **Timeline and deadline**:
-- **Latest status**: %STATUS% (e.g. in planning, in progress, completed, canceled, waiting for response etc.)
+- **Contact point from the expert team**: Victoria Reyes Garcia
+- **Contact point from assessment tsu**: Camille
+- **Contact point from data tsu**: Yanina - Rainer
+- **Timeline and deadline**: Mid April
+- **Latest status**: in progress
 
 - **email to**:
   - %EMAIL_TO%
