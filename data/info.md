@@ -1,17 +1,17 @@
 Viki's email
 Here is a summary of what I think we agreed on during that meeting
 Viki has provided a clean and anonymized but partial dataset (with only the variables and cases of interest) to the Data-TSU.  The dataset collects information from the webpage https://ejatlas.org/, and should remain confidential.
-In the data sent, about 2800 environmental justice cases are clustered according to their outcome (left column). Then we have cluster them (using hierarchical cluster) in 3 clusters. 
-The largest is the reform cluster (as mobilization result in some form of mediation and change)[Cluster B or 2], the second largest the resists cluster (as mobilization results in criminalization) )[Cluster A or 1], and the third, a transform cluster (with mobilization resulting in some stopping of projects that result in environmental impacts) )[Cluster C or 3].
+In the data sent, about 2800 environmental justice cases are clustered according to their outcome (left column). Then we have cluster them (using hierarchical cluster) in 3 clusters: 
+- The largest is the reform cluster (as mobilization result in some form of mediation and change)[Cluster B or 2]
+- the second largest the resists cluster (as mobilization results in criminalization) )[Cluster A or 1].
+- the third is a transform cluster (with mobilization resulting in some stopping of projects that result in environmental impacts) )[Cluster C or 3].
 
 Yanina will work in the analysis including:
 - a visualization of the spatial distribution of cases. Options we mentioned include
 i.      Kernel density distribution of conflicts by clusters above (one map by each cluster or and overlapping map)
-ii.      Distribution by IPBES regions
-iii.      Adding information (color coding?) on which “sectors” (in the dataset the variable is called “category.clean”
-
+ii.     Distribution by IPBES regions
+iii.    Adding information (color coding?) on which “sectors” (in the dataset the variable is called “category.clean”
  
-
 - spatial overlap of mobilizations and biodiversity priorities. Do environmental mobilization happen in biologically important areas?  The logic resembles the one in Garnett article https://www.nature.com/articles/s41893-018-0100-6.
 i.      I do not have a clear view of what measure of “biologically important areas” is best. I was thinking “biodiversity hotspots” . But Yanina is the expert.
 ii.      We could also consider the “sector” in this analysis
