@@ -47,12 +47,11 @@ The info in `% %` need to be changed to the appropriate values. In addition, the
   - %EMAIL_CC%
   - ...
 
-- **Github Repo**: [IPBES_xxx_Chy_project_template](https://github.com/rkrug/IPBES_xxx_Chy_project_template) 
-- **Googl Drive Folder**: [%GOOGLE_DRIVE_FOLDER%](%GOOGLE_DRIVE_FOLDER%) 
+- **Github Repo**: [https://github.com/rkrug/IPBES_xxx_Chy_project_template](https://github.com/IPBES-Data/IPBES_TCA_ch5_ejatlas)
 
 ## Folders
 
-- **`data`**: data files created during the running of the code file and contains cached as well as final data files.
+- **`data`**: shared data files (if any) or intermediate data created during the running of the code.
 - **`outputs`**: figures or other outputs created during the running of the code` file in low-res as well as high-res.
 - **`R`**: R scripts used to run the code in the repo. Files in this folder will be sourced initially.
 
