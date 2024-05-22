@@ -12,17 +12,25 @@ library(raster)
 library(tidyterra)
 library(ggplot2)
 library(ggthemes)
+library(scales)
 
 library(SpatialKDE)
 
-library(rnaturalearth)
-library(rnaturalearthdata)
+#library(rnaturalearth)
+#library(rnaturalearthdata)
 
 setwd('C:/Users/yanis/Documents/scripts/IPBES-Data/IPBES_TCA_ch5_ejatlas/')
 
 # explore input data----
 
-ej_data = read_csv('data/Cluster_analysis_data_TSU.csv')
+ej_data1 = read_csv('data/Cluster_analysis_data_TSU.csv')
+# updated sectors
+ej_data2 = read_csv('data/Cluster_analysis_data_TSU_V2.csv') %>% 
+  dplyr::select("id", "cluster","category_recoded")
+ej_data2 %>%  distinct(category_recoded)
+
+ej_data = ej_data1 %>% 
+  left_join(ej_data2, by = c('id','cluster'))
 names(ej_data)
 
 ej_data %>%  group_by(cluster) %>% distinct(id) %>% count()
@@ -37,21 +45,32 @@ ej_data %>% filter(is.na(Lat)) # 4 locations are incomplete
 ej_data %>% filter(is.na(Lon)) # 3 locations are incomplete
 ej_data %>% distinct(id) %>%  count() #no duplicates 
 ej_data %>% distinct(category.clean)
+ej_data %>% distinct(category_recoded)
 
 # prep data 
 ej_data_clean = ej_data %>% 
-  dplyr::select("id","cluster","category.clean", "start.year.coded",
+  dplyr::select("id","cluster","category.clean", "category_recoded",
+                "start.year.coded",
                 "project.status.simplified", "project.status.clean",
                 "Country","Lat","Lon",
                 "population.type.clean") %>% 
-  # clean sectors
-  mutate(sector = as.factor(gsub('Climate policies[/]impacts and all others','Climate',category.clean))) %>% 
+  # clean sectors updated
+  dplyr::mutate(sector = as.factor(gsub('Climate policies[/]impacts and all others','Climate',category.clean))) %>% 
+  dplyr::mutate(sector_grouped = gsub('^ii$','Industries, other infrastructure',category_recoded)) %>% 
+  dplyr::mutate(sector_grouped = gsub('^ff$','Fossil fuels',sector_grouped)) %>%
+  dplyr::mutate(sector_grouped = gsub('^affl$','Agriculture, Forestry, Fisheries and Livestock',sector_grouped)) %>%
+  dplyr::mutate(sector_grouped = gsub('mining$','Mining',sector_grouped)) %>%
+  dplyr::mutate(sector_grouped = gsub('dams$','Dams',sector_grouped)) %>%
+  dplyr::mutate(sector_grouped = gsub('^other$','Others',sector_grouped)) %>%
   # clean year
-  mutate(start.year.clean = as.integer(gsub('POST','',start.year.coded))) %>% 
+  dplyr::mutate(start.year.clean = as.integer(gsub('POST','',start.year.coded))) %>% 
   dplyr::select(-start.year.coded) %>% 
   # make clusters and sectors as factors
   dplyr::mutate(cluster = as.factor(cluster)) %>% 
-  dplyr::mutate(category.clean = as.factor(category.clean))
+  dplyr::mutate(category.clean = as.factor(category.clean)) %>% 
+  dplyr::mutate(sector_grouped = as.factor(sector_grouped)) 
+   
+ej_data_clean %>% distinct(sector_grouped)        
 
 # get spatial object
 ej_data_sp = ej_data_clean %>% 
@@ -66,7 +85,8 @@ ej_data_sp = ej_data_clean %>%
 ej_data_sp %>% filter(is.na(geometry))
 
 # save
-#write_sf(ej_data_sp, 'data/ej_data.gpkg')
+write_sf(ej_data_sp, 'data/ej_data.gpkg')
+ej_data_sp = read_sf('data/ej_data.gpkg')
 
 #transform to robinson
 robin <- "+proj=robin +lon_0=0 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs"
@@ -74,9 +94,11 @@ ej_data_sp_robin <- sf::st_transform(ej_data_sp, crs = robin) # changes the proj
 
 #checks
 ej_data_sp_robin %>% filter(is.na(category.clean))
+ej_data_sp_robin %>% filter(is.na(category_recoded))
 
 # save
 #write_sf(ej_data_sp_robin, 'data/ej_data_robin.gpkg')
+ej_data_sp_robin = read_sf('data/ej_data_robin.gpkg')
 
 # Plot ej locations----
 
@@ -280,8 +302,8 @@ ipbes_SUBregions_simp_robin_ej_data_cl3 =
 ipbes_SUBregions_simp_robin_ej_data_cl3
 
 # Plot sectors as categories------
-ej_data_sp_robin %>% distinct(category.clean)
-ej_data_sp_robin %>% filter(is.na(category.clean))
+ej_data_sp_robin %>% distinct(category_recoded)
+ej_data_sp_robin %>% filter(is.na(category_recoded))
 
 # by cluster
 ggplot(data = ej_data_clean, aes(x = cluster, fill = sector)) +
@@ -291,18 +313,27 @@ ggplot(data = ej_data_clean, aes(x = cluster, fill = sector)) +
              position=position_fill(vjust=0.5), colour="white")
 
 # by sector
-ggplot(data = ej_data_clean, aes(x = sector, fill = cluster)) +
-  geom_bar(position = "fill") + ylab("proportion") +
+show_col(colorblind_pal()(8))
+my.x.labels <- c("Agriculture, Forestry,\nFisheries and Livestock","Dams", "Fossil fuels", "Industries,\nother infrastructure", "Mining", "Others") # first create labels, add \n where appropriate.
+
+ggplot(data = ej_data_clean, aes(x = sector_grouped, fill = cluster)) +
+  geom_bar(position = "fill") + #this calculates proportions instead of total nubers
+  labs(y = "Proportion of cases", x = '') +
+  scale_colour_colorblind(, name = 'Cluster type') +
+  scale_x_discrete(labels= my.x.labels) +
   stat_count(geom = "text", 
              aes(label = stat(count)),
              position=position_fill(vjust=0.5), colour="white")
 
 # Plot ej cases by sector
-okabe <- c("#E69F00", "#56B4E9", "#009E73", "#F0E499", "#0072B2", "#D55E00", "#CC79A7","#FFFFFF", "#000000", "#20FF40", "#DD00A7")
+#okabe <- c("#E69F00", "#56B4E9", "#009E73", "#F0E499", "#0072B2", "#D55E00", "#CC79A7","#FFFFFF", "#000000", "#20FF40", "#DD00A7")
+#okabe6 <- c("#E69F00", "#56B4E9", "#009E73", "#F0E499", "#0072B2", "#D55E00")
+
 ggplot() +
   geom_sf(data = world) + 
-  geom_sf(data = filter(ej_data_sp_robin, cluster == 3), aes(color = category.clean)) + 
-  scale_color_manual(values = okabe, name = 'Sectors in cluster 3') +
+  geom_sf(data = filter(ej_data_sp_robin, cluster == 1), aes(color = sector_grouped)) + 
+  #scale_color_manual(values = okabe6, name = 'Sectors in cluster 3') +
+  scale_colour_colorblind(, name = 'Sectors in cluster 1') +
   theme(
     panel.grid.major = element_line(color = gray(.5), linetype = "dashed", size = 0.5), # sets latitude and longitude lines 
     panel.background = element_rect(fill = "#FFFFFF") # sets background panel color 
@@ -313,16 +344,58 @@ ggplot() +
 # Temporal analysis----
 
 temp_ej_data_clean = ej_data_clean %>% 
+  #group_by(cluster, start.year.clean) %>% 
+  #count() %>% 
+  # count cases in clusters
+  group_by(cluster) %>% 
+  add_count() %>% 
+  ungroup() %>% 
+  rename("n_by_cluster" = n) %>% 
+  # count cases in each year
+  group_by(start.year.clean) %>% 
+  add_count() %>% 
+  ungroup() %>% 
+  rename("n_by_year" = n) %>% 
+  # count cases in year/cluster combination
   group_by(cluster, start.year.clean) %>% 
-  count()
-
-ggplot(data = temp_ej_data_clean, aes(x = start.year.clean, y = n, group = cluster, color = cluster)) +
+  add_count() %>% 
+  ungroup() %>% 
+  rename("n_by_cluster_year" = n) %>% 
+  # calculate percentages of total cases per year
+  mutate(perc_cases_per_year = n_by_cluster_year/n_by_year) #%>% 
+  #distinct(cluster, start.year.clean, n_by_cluster,n_by_year,n_by_cluster_year,perc_cases_per_year)
+ 
+ # lines: total numbers
+ggplot(data = temp_ej_data_clean, aes(x = start.year.clean, y = n_by_cluster_year, group = cluster, color = cluster)) +
   geom_line() +
   geom_point() + 
   labs(y="Number of EJ cases", x = "Start year")
 
-# Overlay with human modification 
+# lines : proportion
+ggplot(data = temp_ej_data_clean, aes(x = start.year.clean, y = perc_cases_per_year, group = cluster, color = cluster)) +
+  geom_line() +
+  geom_point() + 
+  labs(y="Proportion of EJ cases", x = "Start year")
 
+
+# bars; proportion (when I create the proportion)
+ggplot(data = temp_ej_data_clean, aes(x = start.year.clean, y = perc_cases_per_year, fill = cluster)) +
+  geom_bar(stat="identity") +
+  labs(y = "Proportion of cases", x = '')
+
+# bars: proportion (when ggplot creates it automatically)
+ggplot(data = temp_ej_data_clean, aes(x = start.year.clean, fill = cluster)) +
+  geom_bar(position = "fill") + #
+  scale_y_continuous(labels = scales::percent) +
+  labs(y = "Percentage of cases", x = '') +
+    stat_count(geom = "text", 
+             aes(label = stat(count)),
+             position=position_fill(vjust=0.5), colour="white")
+
+
+# Overlay with human modification/biodiversity hotspots----
+
+### richness maps-----
 indic_path = 'C:/Users/yanis/Documents/IPBES/nexus_indicators/all_harmonized/'
 
 vert_sp_rich = rast(paste0(indic_path, 'B_038_Species_Richness_4taxa_harm.tif'))
@@ -352,6 +425,85 @@ ggplot() +
   ) +
   theme(
     panel.grid.major = element_line(color = gray(.5), linetype = "dashed", size = 0.5), # sets latitude and longitude lines 
+    panel.background = element_rect(fill = "#FFFFFF")# sets background panel color 
+  )  +
+  coord_sf(crs = robin)
+
+### Priority maps-------
+indic_path = 'C:/Users/yanis/Documents/IPBES/biodiversity_indic/important_biodiversity_areas/BiodiversityOnly/'
+
+# ranked (1-100, 1 is the most important areas)
+biodiv = rast(paste0(indic_path, 'BiodiversityOnly/50km/minshort_speciestargetswithPA_esh50km_repruns10_ranked.tif'))
+plot(biodiv) 
+
+# Project to Robinson
+robin <- "+proj=robin +lon_0=0 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs"
+biodiv_robin <- project(biodiv, robin)
+
+library(RColorBrewer)
+par(mar=c(3,4,2,2))
+#display.brewer.all()
+# PLot 
+
+factor_robin <- biodiv_robin %>% mutate(cats = cut(minshort_speciestargetswithPA_esh50km_repruns10_ranked,
+                                              breaks = c(0, 10, 40, 60, 90,100),
+                                              labels = c("Very High", "High", "Average", "Low","Very Low")
+))
+
+# all clusters
+ggplot() +
+  geom_spatraster(data = factor_robin, aes(fill = cats)) +
+  geom_sf(data = ej_data_sp_robin, aes(shape = cluster, color = cluster), size = 1.5) +
+  
+  # scale for points
+  scale_shape_manual("Cluster",values = c(15, 16, 17)) +
+  scale_color_manual("Cluster",values = c("#ff0000", "#cc66ff", "#000000")) +
+  
+  #scale for raster
+  scale_fill_whitebox_d(
+    "Priority",
+    palette = "viridi",
+    direction = -1,
+    na.value = "transparent"
+    ) +
+  # legends
+  # labs(
+  #   title = "Areas of global significance for biodiversity conservation with EJ cases",
+  #   fill = "Priority",
+  #   colour = "Cluster",
+  #   ) +
+
+  theme(
+    panel.grid.major = element_line(color = gray(.5), linetype = "dashed", linewidth = 0.5), # sets latitude and longitude lines 
+    panel.background = element_rect(fill = "#FFFFFF")# sets background panel color 
+    #legend.position = "bottom"
+    )  +
+  coord_sf(crs = robin)
+
+
+# by cluster
+ggplot() +
+  geom_spatraster(data = factor_robin, aes(fill = cats)) +
+  # EJ cases
+  #geom_sf(data = filter(ej_data_sp_robin, cluster==1), size = 1.5, shape = 15, col = "#ff0000") +
+  #geom_sf(data = filter(ej_data_sp_robin, cluster==2), size = 1.5, shape = 16, col = "#cc66ff") +
+  geom_sf(data = filter(ej_data_sp_robin, cluster==3), size = 1.5, shape = 17, col = "#000000") +
+
+  
+  #scale for raster
+  scale_fill_whitebox_d(
+    "Priority",
+    palette = "viridi",
+    direction = -1,
+    na.value = "transparent"
+  ) +
+  # legends
+  labs(
+    title = "Areas of global significance for biodiversity conservation with EJ cases (cluster 3)",
+    ) +
+  
+  theme(
+    panel.grid.major = element_line(color = gray(.5), linetype = "dashed", linewidth = 0.5), # sets latitude and longitude lines 
     panel.background = element_rect(fill = "#FFFFFF")# sets background panel color 
   )  +
   coord_sf(crs = robin)
