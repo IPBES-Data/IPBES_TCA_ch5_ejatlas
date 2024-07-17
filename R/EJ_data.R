@@ -1,3 +1,5 @@
+rm(list=ls())
+
 # This script plays around with EJ data fr ch5 in TfC assessment
 
 library(tidyr)
@@ -239,6 +241,40 @@ ipbes_regions_simp <- read_sf("C:/Users/yanis/Documents/regions/IPBES_Regions_Su
 #transform to robinson
 robin <- "+proj=robin +lon_0=0 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs"
 regions_robin <- sf::st_transform(ipbes_regions_simp, crs = robin) # changes the projection
+data = filter(regions_robin, is.na(parent_id))
+
+# all clusters
+plot = ggplot() +
+  geom_sf(data = data) +
+  geom_sf(data = ej_data_sp_robin, aes(shape = cluster, color = cluster), size = 1.5) +
+  
+  # scale for points
+  scale_shape_manual("Cluster",values = c(15, 16, 17)) +
+  scale_color_manual("Cluster",values = c("blue", "pink", "#000000")) +
+  
+  #scale for raster
+  scale_fill_whitebox_d(
+    "Priority",
+    palette = "viridi",
+    direction = 1,
+    na.value = "transparent"
+  ) +
+  # legends
+  # labs(
+  #   title = "Areas of global significance for biodiversity conservation with EJ cases",
+  #   fill = "Priority",
+  #   colour = "Cluster",
+  #   ) +
+  
+  theme(
+    #panel.grid.major = element_line(color = gray(.5), linetype = "dashed", linewidth = 0.5), # sets latitude and longitude lines 
+    panel.background = element_rect(fill = "#FFFFFF")# sets background panel color 
+    #legend.position = "bottom"
+  )  +
+  coord_sf(crs = robin)
+
+plot
+ggsave(file="outputs/clusters_ipbes_regions.svg", plot=plot, width=10, height=8, dpi = 500)
 
 # intersect points and regions
 ej_data_sp_robin_ipbes = ej_data_sp_robin %>% 
@@ -433,37 +469,41 @@ ggplot() +
 indic_path = 'C:/Users/yanis/Documents/IPBES/biodiversity_indic/important_biodiversity_areas/BiodiversityOnly/'
 
 # ranked (1-100, 1 is the most important areas)
-biodiv = rast(paste0(indic_path, 'BiodiversityOnly/50km/minshort_speciestargetswithPA_esh50km_repruns10_ranked.tif'))
+biodiv = rast(paste0(indic_path, 'BiodiversityOnly/10km/minshort_speciestargetswithPA_esh10km_repruns10_ranked.tif'))
 plot(biodiv) 
 
 # Project to Robinson
 robin <- "+proj=robin +lon_0=0 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs"
 biodiv_robin <- project(biodiv, robin)
+writeRaster(biodiv_robin,'C:/Users/yanis/Documents/scripts/IPBES-Data/IPBES_TCA_ch5_ejatlas/outputs/priority_areas_biodiversitywithPA_10km.tiff')
 
-library(RColorBrewer)
-par(mar=c(3,4,2,2))
-#display.brewer.all()
+ej_data_sp_robin = ej_data_sp_robin %>% 
+  mutate(cluster = gsub('1','Resists cases',cluster)) %>% 
+  mutate(cluster = gsub('2','Reform cases',cluster)) %>% 
+  mutate(cluster = gsub('3','Transform cases',cluster))
+  
+
 # PLot 
 
-factor_robin <- biodiv_robin %>% mutate(cats = cut(minshort_speciestargetswithPA_esh50km_repruns10_ranked,
+factor_robin <- biodiv_robin %>% mutate(cats = cut(minshort_speciestargetswithPA_esh10km_repruns10_ranked,
                                               breaks = c(0, 10, 40, 60, 90,100),
                                               labels = c("Very High", "High", "Average", "Low","Very Low")
 ))
 
 # all clusters
-ggplot() +
+plot = ggplot() +
   geom_spatraster(data = factor_robin, aes(fill = cats)) +
-  geom_sf(data = ej_data_sp_robin, aes(shape = cluster, color = cluster), size = 1.5) +
+  #geom_sf(data = ej_data_sp_robin, aes(shape = cluster, color = cluster), size = 1.5) +
   
   # scale for points
   scale_shape_manual("Cluster",values = c(15, 16, 17)) +
-  scale_color_manual("Cluster",values = c("#ff0000", "#cc66ff", "#000000")) +
+  scale_color_manual("Cluster",values = c("blue", "pink", "#000000")) +
   
   #scale for raster
   scale_fill_whitebox_d(
     "Priority",
     palette = "viridi",
-    direction = -1,
+    direction = 1,
     na.value = "transparent"
     ) +
   # legends
@@ -474,19 +514,65 @@ ggplot() +
   #   ) +
 
   theme(
-    panel.grid.major = element_line(color = gray(.5), linetype = "dashed", linewidth = 0.5), # sets latitude and longitude lines 
+    #panel.grid.major = element_line(color = gray(.5), linetype = "dashed", linewidth = 0.5), # sets latitude and longitude lines 
     panel.background = element_rect(fill = "#FFFFFF")# sets background panel color 
     #legend.position = "bottom"
     )  +
   coord_sf(crs = robin)
 
+plot
+ggsave(file="outputs/backgroup_map_viridis.pdf", plot=plot, width=10, height=8, dpi = 500)
+
+#all cluster (raster as df)
+
+factor_robin_df <- as.data.frame(factor_robin, xy = TRUE)
+
+
+# all clusters
+plot = ggplot() +
+  geom_tile(data = factor_robin_df, aes(x = x, y = y,fill = cats)) +
+  #geom_sf(data = ej_data_sp_robin, aes(shape = cluster, color = cluster), size = 1.5) +
+  
+  # scale for points
+  scale_shape_manual("Cluster",values = c(15, 16, 17)) +
+  scale_color_manual("Cluster",values = c("blue", "pink", "#000000")) +
+  
+  #scale for raster
+  scale_fill_whitebox_d(
+    "Priority",
+    palette = "gn_yl",
+    direction = 1,
+    na.value = "transparent"
+  ) +
+  # legends
+  # labs(
+  #   title = "Areas of global significance for biodiversity conservation with EJ cases",
+  #   fill = "Priority",
+  #   colour = "Cluster",
+  #   ) +
+  
+  theme(
+    #panel.grid.major = element_line(color = gray(.5), linetype = "dashed", linewidth = 0.5), # sets latitude and longitude lines 
+    panel.background = element_rect(fill = "#FFFFFF"),# sets background panel color 
+    axis.title.x=element_blank(),
+    axis.text.x=element_blank(),
+    axis.ticks.x=element_blank(),
+    axis.title.y=element_blank(),
+    axis.text.y=element_blank(),
+    axis.ticks.y=element_blank()
+  )  +
+  coord_sf(crs = robin)
+
+plot
+ggsave(file="outputs/backgroup_map_df_green.svg", plot=plot, width=10, height=8, dpi = 500)
+
 
 # by cluster
-ggplot() +
+plot_cluster = ggplot() +
   geom_spatraster(data = factor_robin, aes(fill = cats)) +
   # EJ cases
-  #geom_sf(data = filter(ej_data_sp_robin, cluster==1), size = 1.5, shape = 15, col = "#ff0000") +
-  #geom_sf(data = filter(ej_data_sp_robin, cluster==2), size = 1.5, shape = 16, col = "#cc66ff") +
+  #geom_sf(data = filter(ej_data_sp_robin, cluster==1), size = 1.5, shape = 15, col = "lightgray") +
+  #geom_sf(data = filter(ej_data_sp_robin, cluster==2), size = 1.5, shape = 16, col = "#FF10F0") +
   geom_sf(data = filter(ej_data_sp_robin, cluster==3), size = 1.5, shape = 17, col = "#000000") +
 
   
@@ -503,7 +589,10 @@ ggplot() +
     ) +
   
   theme(
-    panel.grid.major = element_line(color = gray(.5), linetype = "dashed", linewidth = 0.5), # sets latitude and longitude lines 
+    #panel.grid.major = element_line(color = gray(.5), linetype = "dashed", linewidth = 0.5), # sets latitude and longitude lines 
     panel.background = element_rect(fill = "#FFFFFF")# sets background panel color 
   )  +
   coord_sf(crs = robin)
+
+plot_cluster
+ggsave(file="outputs/backgroup_map_cluster3.svg", plot=plot_cluster, width=10, height=8, dpi = 300)

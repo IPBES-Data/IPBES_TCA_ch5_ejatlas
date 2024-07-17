@@ -1,1 +1,7 @@
-IPBES_xxx_Chy_project_template.code-workspace
+data
+outputs
+*.tiff
+*.zip
+*.png
+*.pdf
+EJ_data.R
