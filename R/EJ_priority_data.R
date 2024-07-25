@@ -151,7 +151,7 @@ plot = ggplot() +
   geom_sf(data = ej_data_sp_robin, aes(shape = cluster, color = cluster), alpha= 0.65, size = 1.5) +
   
   # scale for points
-  scale_shape_manual("Cluster",values = c(15, 16, 17)) +
+  scale_shape_manual("Cluster",values = c(16, 15, 17)) +
   scale_color_manual("Cluster",values = c("#000000", "pink", "blue")) +
   
   #scale for raster
@@ -176,6 +176,6 @@ plot = ggplot() +
   coord_sf(crs = robin)
 
 plot
-ggsave(file="outputs/priority_map_w_clusters.svg", plot=plot, width=10, height=8, dpi = 300)
+ggsave(file="outputs/priority_map_w_clusters_10k.svg", plot=plot, width=10, height=8, dpi = 300)
 
 
