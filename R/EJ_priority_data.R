@@ -19,7 +19,9 @@ library(svglite)
 library(rnaturalearth)
 library(rnaturalearthdata)
 
-setwd('C:/Users/JLU-SU/Documents/GitHub/IPBES-Data/IPBES_TCA_ch5_ejatlas/')
+setwd(dirname(rstudioapi::getSourceEditorContext()$path))
+#setwd('C:/Users/JLU-SU/Documents/GitHub/IPBES-Data/IPBES_TCA_ch5_ejatlas/')
+getwd()
 
 # explore input data----
 
@@ -86,7 +88,7 @@ setwd('C:/Users/JLU-SU/Documents/GitHub/IPBES-Data/IPBES_TCA_ch5_ejatlas/')
 
 # Load spatial EJ data----
 
-ej_data_sp = read_sf('data/ej_data.gpkg')
+ej_data_sp = read_sf('../data/ej_cases/ej_data.gpkg')
 
 #transform to robinson
 robin <- "+proj=robin +lon_0=0 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs"
@@ -128,7 +130,7 @@ ggplot() +
 # Downloaded from https://doi.org/10.5281/zenodo.5006332
 
 # ranked (1-100, 1 is the most important areas)
-biodiv = rast(paste0(indic_path, '/10km/minshort_speciestargetswithPA_esh10km_repruns10_ranked.tif'))
+biodiv = rast('../data/important_biodiversity_areas/minshort_speciestargetswithPA_esh10km_repruns10_ranked.tif')
 plot(biodiv) 
 
 # Project to Robinson
@@ -176,6 +178,38 @@ plot = ggplot() +
   coord_sf(crs = robin)
 
 plot
-ggsave(file="outputs/priority_map_w_clusters_10k.svg", plot=plot, width=10, height=8, dpi = 300)
+ggsave(file="../outputs/priority_map_w_clusters_10k.svg", plot=plot, width=10, height=8, dpi = 300)
 
+#Calculate number of cases falling within the top 30% of land area for biodiversity
+high_biodiv_robin = biodiv_robin %>% 
+  tidyterra::filter(minshort_speciestargetswithPA_esh10km_repruns10_ranked <= 30) %>% 
+  mutate(high_priority = if_else(minshort_speciestargetswithPA_esh10km_repruns10_ranked <= 30,
+                                 true = 1,
+                                 false = 0))
+plot(high_biodiv_robin$high_priority) 
+plot(high_biodiv_robin$minshort_speciestargetswithPA_esh10km_repruns10_ranked) 
 
+# Convert the sf object to a SpatVector for compatibility with terra
+ej_data_sp_robin_terra <- vect(ej_data_sp_robin)
+
+# Extract the raster values at the point locations
+extracted_values <- extract(biodiv_robin, ej_data_sp_robin_terra)
+
+# Combine the extracted values with the original data
+ej_data_combined <- ej_data_sp_robin %>% 
+  cbind(extracted_values) %>% 
+  rename(priority_rank = minshort_speciestargetswithPA_esh10km_repruns10_ranked) %>% 
+  dplyr::select(-geom, -ID) %>% 
+  st_drop_geometry(NULL) %>% 
+  write_csv("../outputs/cases_priority.csv")
+
+# Filter for high priority areas (where raster value equals 1)
+high_priority_points <- ej_data_combined %>% 
+  filter(priority_rank <= 30) %>% 
+  filter(!is.na(priority_rank))
+  
+# Count the number of points in each cluster
+cluster_counts <- table(high_priority_points$cluster)  # Replace 'cluster' with the actual column name
+
+# Print the results
+print(cluster_counts)
