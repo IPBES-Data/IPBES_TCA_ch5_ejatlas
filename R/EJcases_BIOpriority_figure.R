@@ -19,94 +19,19 @@ library(svglite)
 library(rnaturalearth)
 library(rnaturalearthdata)
 
-setwd(dirname(rstudioapi::getSourceEditorContext()$path))
-#setwd('C:/Users/JLU-SU/Documents/GitHub/IPBES-Data/IPBES_TCA_ch5_ejatlas/')
+# Set working directory
+setwd(dirname(rstudioapi::getSourceEditorContext()$path))# only works in RStudio
+#setwd('your/path') # or set the chose path
 getwd()
-
-# explore input data----
-
-# ej_data1 = read_csv('data/Cluster_analysis_data_TSU.csv')
-# # updated sectors
-# ej_data2 = read_csv('data/Cluster_analysis_data_TSU_V2.csv') %>% 
-#   dplyr::select("id", "cluster","category_recoded")
-# ej_data2 %>%  distinct(category_recoded)
-# 
-# ej_data = ej_data1 %>% 
-#   left_join(ej_data2, by = c('id','cluster'))
-# names(ej_data)
-# 
-# ej_data %>%  group_by(cluster) %>% distinct(id) %>% count()
-# # cluster  n
-# # 1        755 --> resist
-# # 2        1507 --> reform
-# # 3        540 --> transform
-# 
-# ej_data %>% filter(is.na(cluster)) #no NAs
-# ej_data %>% filter(is.na(id))
-# ej_data %>% filter(is.na(Lat)) # 4 locations are incomplete
-# ej_data %>% filter(is.na(Lon)) # 3 locations are incomplete
-# ej_data %>% distinct(id) %>%  count() #no duplicates 
-# ej_data %>% distinct(category.clean)
-# ej_data %>% distinct(category_recoded)
-# 
-# # prep data 
-# ej_data_clean = ej_data %>% 
-#   dplyr::select("id","cluster","category.clean", "category_recoded",
-#                 "start.year.coded",
-#                 "project.status.simplified", "project.status.clean",
-#                 "Country","Lat","Lon",
-#                 "population.type.clean") %>% 
-#   # clean sectors updated
-#   dplyr::mutate(sector = as.factor(gsub('Climate policies[/]impacts and all others','Climate',category.clean))) %>% 
-#   dplyr::mutate(sector_grouped = gsub('^ii$','Industries, other infrastructure',category_recoded)) %>% 
-#   dplyr::mutate(sector_grouped = gsub('^ff$','Fossil fuels',sector_grouped)) %>%
-#   dplyr::mutate(sector_grouped = gsub('^affl$','Agriculture, Forestry, Fisheries and Livestock',sector_grouped)) %>%
-#   dplyr::mutate(sector_grouped = gsub('mining$','Mining',sector_grouped)) %>%
-#   dplyr::mutate(sector_grouped = gsub('dams$','Dams',sector_grouped)) %>%
-#   dplyr::mutate(sector_grouped = gsub('^other$','Others',sector_grouped)) %>%
-#   # clean year
-#   dplyr::mutate(start.year.clean = as.integer(gsub('POST','',start.year.coded))) %>% 
-#   dplyr::select(-start.year.coded) %>% 
-#   # make clusters and sectors as factors
-#   dplyr::mutate(cluster = as.factor(cluster)) %>% 
-#   dplyr::mutate(category.clean = as.factor(category.clean)) %>% 
-#   dplyr::mutate(sector_grouped = as.factor(sector_grouped)) 
-#    
-# ej_data_clean %>% distinct(sector_grouped)        
-# 
-# # get spatial object
-# ej_data_sp = ej_data_clean %>% 
-#   # remove NAs or odd values in lat/long
-#   filter(!is.na(Lat)) %>% 
-#   filter(!is.na(Lon)) %>% 
-#   filter(Lat != -20339962) %>% 
-#   # convert to sf object
-#   st_as_sf(coords = c("Lon", "Lat"), crs = 4326)
-# 
-# # checks
-# ej_data_sp %>% filter(is.na(geometry))
 
 # Load spatial EJ data----
 
-ej_data_sp = read_sf('../data/ej_cases/ej_data.gpkg')
+ej_data_sp = read_sf('../data/ej_cases/ej_data_public.gpkg')
+names(ej_data_sp)
 
 #transform to robinson
 robin <- "+proj=robin +lon_0=0 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs"
 ej_data_sp_robin <- sf::st_transform(ej_data_sp, crs = robin) # changes the projection
-
-#checks
-ej_data_sp_robin %>% filter(is.na(category.clean))
-ej_data_sp_robin %>% filter(is.na(category_recoded))
-
-# properly name clusters
-ej_data_sp_robin = ej_data_sp_robin %>% 
-  mutate(cluster = gsub('1','Resists cases',cluster)) %>% 
-  mutate(cluster = gsub('2','Reform cases',cluster)) %>% 
-  mutate(cluster = gsub('3','Transform cases',cluster))
-
-# save
-#write_sf(ej_data_sp_robin, 'data/ej_data_robin.gpkg')
-#ej_data_sp_robin = read_sf('data/ej_data_robin.gpkg')
 
 # Plot ej locations----
 
@@ -180,7 +105,7 @@ plot = ggplot() +
 plot
 ggsave(file="../outputs/priority_map_w_clusters_10k.svg", plot=plot, width=10, height=8, dpi = 300)
 
-#Calculate number of cases falling within the top 30% of land area for biodiversity
+# Calculate number of cases falling within the top 30% of land area for biodiversity----
 high_biodiv_robin = biodiv_robin %>% 
   tidyterra::filter(minshort_speciestargetswithPA_esh10km_repruns10_ranked <= 30) %>% 
   mutate(high_priority = if_else(minshort_speciestargetswithPA_esh10km_repruns10_ranked <= 30,
@@ -200,10 +125,9 @@ ej_data_combined <- ej_data_sp_robin %>%
   cbind(extracted_values) %>% 
   rename(priority_rank = minshort_speciestargetswithPA_esh10km_repruns10_ranked) %>% 
   dplyr::select(-geom, -ID) %>% 
-  st_drop_geometry(NULL) %>% 
-  write_csv("../outputs/cases_priority.csv")
+  st_drop_geometry(NULL) 
 
-# Filter for high priority areas (where raster value equals 1)
+# Filter for high priority areas 
 high_priority_points <- ej_data_combined %>% 
   filter(priority_rank <= 30) %>% 
   filter(!is.na(priority_rank))

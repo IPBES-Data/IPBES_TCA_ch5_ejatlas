@@ -1,7 +1,6 @@
-data
-outputs
+data/ej_cases/private
+outputs/private
+R/private
 *.tiff
 *.zip
-*.png
-*.pdf
-EJ_data.R
+
