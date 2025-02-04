@@ -1,6 +1,6 @@
-# Mapping EJ cased in biodiversity priority areas
+# Mapping EJ cases in biodiversity priority areas
 
-This repository is part of an ongoing IPBES project.
+This repository is part of the Transformative Change Assessment.
 
 The authors do not take any responsibility for its content or the correct working of the code. If scripts in here wipe your data, you are on your own.
 
@@ -18,34 +18,14 @@ Once finalised, the final repo will be published on Zenodo
 - **Requested by**: Victoria Reyes Garcia
 - **Requested in/during**: Meeting with Data TSU in mid March
 
-- **Context**:
-- **Relevant chapters**:
-- **Task(s)**:
 - **Contact point from the expert team**: Victoria Reyes Garcia
 - **Contact point from assessment tsu**: Camille
 - **Contact point from data tsu**: Yanina - Rainer
 - **Timeline and deadline**: Mid April
-- **Latest status**: in progress
+- **Latest status**: Finished
 
-- **Github Repo**: [IPBES/Data GitHub](https://github.com/IPBES-Data/IPBES_TCA_ch5_ejatlas)
-- **Drive**: [https://docs.google.com/document/d/1smlDE0LCNFQdKb1Eh3OdC2BvbWHBOS_XlJikvLnvx7A/edit](https://docs.google.com/document/d/1smlDE0LCNFQdKb1Eh3OdC2BvbWHBOS_XlJikvLnvx7A/edit)
-- 
 ## Folders
 
 - **`data`**: shared data files (if any) or intermediate data created during the running of the code.
 - **`outputs`**: figures or other outputs created during the running of the code.
 - **`R`**: R scripts used to run the code in the repo. Files in this folder will be sourced initially.
-
-## Project Description
-
-- aim
-- objectives
-- expected product
-
-
-## Status
-- ...
-
-
-## Reports
-- [Example Report](Report.html)
