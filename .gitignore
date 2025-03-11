@@ -4,3 +4,4 @@ R/private
 *.tiff
 *.zip
 
+.DS_Store

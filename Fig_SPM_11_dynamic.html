@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPBES Transformative Change Assessment - SPM - Figure SPM.11</title>
+
+    <!-- CSS for Styling -->
+    <style>
+        /* Title Styling */
+        .description-text {
+            font-size: 24px;
+            /* Adjust the size as needed */
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        /* Container for the SVG and overlays */
+        #svg-container {
+            position: relative;
+            width: 100%;
+            height: 70vh;
+            border: 1px solid #ccc;
+        }
+
+        /* Styling for the SVG element */
+        svg {
+            width: 100%;
+            height: 100%;
+        }
+
+
+        /* Attribution and logo at the bottom right */
+        .overlay-bottom-right {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 5px 10px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .overlay-bottom-right img {
+            height: 30px;
+            margin-left: 10px;
+        }
+
+        /* Container for the control buttons inside SVG */
+        .controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 5px;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        /* Styling for the buttons */
+        .controls button {
+            font-size: 12px;
+            /* Smaller font size */
+            padding: 5px;
+            /* Smaller padding */
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 3px;
+        }
+
+        /* Hover effect for the buttons */
+        .controls button:hover {
+            background-color: #45a049;
+        }
+
+        /* Styling for the DOI badge */
+        .doi-badge {
+            margin-top: 10px;
+            text-align: right;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Description Text Above the SVG -->
+    <div class="description-text">
+        IPBES Transformative Change Assessment - SPM - Figure SPM.11
+    </div>
+
+    <!-- SVG Container -->
+    <div id="svg-container">
+        <!-- SVG Content -->
+        <!-- Ensure your SVG content is placed here or loaded dynamically -->
+        <svg><!-- Your SVG content --></svg>
+
+        <!-- Attribution and Logo at the Bottom Right -->
+        <div class="overlay-bottom-right">
+            Data has been provided by <a href="https://ejatlas.org" target="_blank">EJAtlas</a>
+            <img src="images/ejatlas-logo.png" alt="EJAtlas Logo">
+        </div>
+
+        <!-- Buttons for Zoom and Pan Controls Inside SVG Container -->
+        <div class="controls">
+            <button onclick="zoomIn()">Zoom In</button>
+            <button onclick="zoomOut()">Zoom Out</button>
+            <button onclick="panLeft()">← Pan Left</button>
+            <button onclick="panRight()">→ Pan Right</button>
+            <button onclick="panUp()">↑ Pan Up</button>
+            <button onclick="panDown()">↓ Pan Down</button>
+            <button onclick="resetZoom()">Reset</button>
+        </div>
+    </div>
+
+    <!-- Custom Data DOI Badge -->
+    <div class="doi-badge">
+        <a href="https://doi.org/10.5281/zenodo.1234567">
+            <img src="https://img.shields.io/badge/Data%20DOI-10.5281%2Fzenodo.1234567-blue" alt="Data DOI">
+        </a>
+    </div>
+
+    <!-- Include the svg-pan-zoom library from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+
+    <!-- Script to load and initialize the SVG -->
+    <script>
+        // Declare panZoomInstance in the global scope
+        let panZoomInstance;
+
+        // Function to initialize svg-pan-zoom
+        function initializePanZoom() {
+            const svgElement = document.querySelector('#svg-container svg');
+            if (svgElement) {
+                panZoomInstance = svgPanZoom(svgElement, {
+                    zoomEnabled: true,
+                    controlIconsEnabled: false, // We use custom buttons
+                    fit: true,
+                    center: true
+                });
+            } else {
+                console.error('SVG element not found.');
+            }
+        }
+
+        // Event listener to initialize panZoomInstance after SVG is loaded
+        document.addEventListener("DOMContentLoaded", function () {
+            fetch('outputs/priority_map_w_clusters_10k.svg') // Replace with your actual SVG path
+                .then(response => response.text())
+                .then(svgText => {
+                    document.querySelector('#svg-container svg').outerHTML = svgText;
+                    initializePanZoom();
+                })
+                .catch(error => console.error('Error loading SVG:', error));
+        });
+
+        // Zoom Functions
+        function zoomIn() {
+            if (panZoomInstance) panZoomInstance.zoomIn();
+            else console.error('panZoomInstance is not initialized.');
+        }
+        function zoomOut() {
+            if (panZoomInstance) panZoomInstance.zoomOut();
+            else console.error('panZoomInstance is not initialized.');
+        }
+        function resetZoom() {
+            if (panZoomInstance) panZoomInstance.resetZoom();
+            else console.error('panZoomInstance is not initialized.');
+        }
+
+        // Pan Functions
+        function panLeft() {
+            if (panZoomInstance) panZoomInstance.panBy({ x: 50, y: 0 });
+            else console.error('panZoomInstance is not initialized.');
+        }
+        function panRight() {
+            if (panZoomInstance) panZoomInstance.panBy({ x: -50, y: 0 });
+            else console.error('panZoomInstance is not initialized.');
+        }
+        function panUp() {
+            if (panZoomInstance) panZoomInstance.panBy({ x: 0, y: 50 });
+            else console.error('panZoomInstance is not initialized.');
+        }
+        function panDown() {
+            if (panZoomInstance) panZoomInstance.panBy({ x: 0, y: -50 });
+            else console.error('panZoomInstance is not initialized.');
+        }
+    </script>
+</body>
+
+</html>

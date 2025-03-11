@@ -29,3 +29,6 @@ Once finalised, the final repo will be published on Zenodo
 - **`data`**: shared data files (if any) or intermediate data created during the running of the code.
 - **`outputs`**: figures or other outputs created during the running of the code.
 - **`R`**: R scripts used to run the code in the repo. Files in this folder will be sourced initially.
+
+## Interactive map
+- [Fig SPM.11](Fig_SPM_11_dynamic.html)
