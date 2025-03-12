@@ -1,0 +1,35 @@
+---
+title: "Leaflet Map with EJ Data"
+format:
+    html:
+        toc: true
+        toc-depth: 2
+        embed-resources: true
+        code-fold: true
+        code-summary: "Show the code"
+---
+
+```{r}
+library(sf)
+library(leaflet)
+library(terra)
+
+# Load spatial EJ data
+ej_data_sp <- read_sf('data/ej_cases/ej_data_public.gpkg')
+
+# Load biodiversity data
+biodiv <- rast('data/important_biodiversity_areas/minshort_speciestargetswithPA_esh10km_repruns10_ranked.tif')
+
+# Define robin projection
+robin <- "+proj=robin +lon_0=0 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs"
+
+# Transform to Robinson projection
+ej_data_sp_robin <- sf::st_transform(ej_data_sp, crs = robin)
+biodiv_robin <- project(biodiv, robin)
+
+# Create a leaflet map
+leaflet() |>
+  addTiles() |>
+  addRasterImage(biodiv_robin) |>
+  addMarkers(data = ej_data_sp_robin)
+```
