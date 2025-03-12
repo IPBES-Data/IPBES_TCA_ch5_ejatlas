@@ -11,25 +11,57 @@ format:
 
 ```{r}
 library(sf)
-library(leaflet)
+library(mapview)
 library(terra)
+library(dplyr)
+library(mapview)
+
 
 # Load spatial EJ data
-ej_data_sp <- read_sf('data/ej_cases/ej_data_public.gpkg')
+ej_data_sp <- read_sf("data/ej_cases/ej_data_public.gpkg")
 
 # Load biodiversity data
-biodiv <- rast('data/important_biodiversity_areas/minshort_speciestargetswithPA_esh10km_repruns10_ranked.tif')
+biodiv <- rast("data/important_biodiversity_areas/minshort_speciestargetswithPA_esh10km_repruns10_ranked.tif")
 
 # Define robin projection
 robin <- "+proj=robin +lon_0=0 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs"
 
 # Transform to Robinson projection
-ej_data_sp_robin <- sf::st_transform(ej_data_sp, crs = robin)
+ej_data_sp_robin <- sf::st_transform(ej_data_sp, crs = robin) |>
+  dplyr::mutate(
+    symbol = dplyr::case_when(
+      cluster == "Reform cases" ~ 16,
+      cluster == "Resists cases" ~ 15,
+      cluster == "Transform cases" ~ 17,
+      TRUE ~ NA_real_ # Default case (optional)
+    )
+  )
+
 biodiv_robin <- project(biodiv, robin)
 
-# Create a leaflet map
-leaflet() |>
-  addTiles() |>
-  addRasterImage(biodiv_robin) |>
-  addMarkers(data = ej_data_sp_robin)
+# Bin ranked priority areas (1-100) into 5 classes
+factor_robin <- biodiv_robin |>
+  tidyterra::mutate(
+    cats = cut(
+      minshort_speciestargetswithPA_esh10km_repruns10_ranked,
+      breaks = c(0, 10, 40, 60, 90, 100),
+      labels = c("Very High", "High", "Average", "Low", "Very Low")
+    )
+  ) |>
+  mutate(cats = factor(cats, levels = c("Very High", "High", "Average", "Low", "Very Low")))
+
+# breaks <- c(0, 10, 40, 60, 90, 100)
+# labels <- c("Very High", "High", "Average", "Low", "Very Low")
+# rcl <- data.frame(from = breaks[-length(breaks)], to = breaks[-1], becomes = 1:(length(breaks) - 1))
+# biodiv_class <- classify(biodiv_robin, rcl = rcl)
+
+# Create a mapview map
+mapviewOptions(legend = TRUE, basemaps = "OpenStreetMap")
+# levels(biodiv_class) <- labels
+# biodiv_class <- terra::as.factor(biodiv_class)
+
+map <- mapview(factor_robin, col.regions = c("#2ca25f", "#74c476", "#a1d99b", "#c7e9c0", "#edf8e9"), na.omit = TRUE, layer.name = "values") +
+  mapview(ej_data_sp_robin, zcol = "cluster", col.regions = c("black", "pink", "blue"), pch = ej_data_sp_robin$symbol, layer.name = "Cluster")
+
+map
 ```
