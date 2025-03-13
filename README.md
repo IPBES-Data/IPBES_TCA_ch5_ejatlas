@@ -4,7 +4,7 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15005038.svg)](https://doi.org/10.5281/zenodo.15005038)
 
-The data of the [`ej-cases`](data/ej_cases) has been provided by [EJAtlas <img src="images/ejatlas-logo.png" alt="EJAtlas Logo" style="height:1em;">](https://ejatlas.org) and is re-published, after anonymisation, with permission under the DOI [10.5281/zenodo.15005038](https://doi.org/10.5281/zenodo.15005038)
+The data of the <a href="data/ej_cases" target="_blank" rel="noopener noreferrer">ej-cases</a>  has been provided by [EJAtlas <img src="images/ejatlas-logo.png" alt="EJAtlas Logo" style="height:1em;">](https://ejatlas.org) and is re-published, after anonymisation, with permission under the DOI [10.5281/zenodo.15005038](https://doi.org/10.5281/zenodo.15005038)
 
 # Mapping EJ cases in biodiversity priority areas
 
