@@ -1,0 +1,96 @@
+---
+title: "Leaflet Map with EJ Data"
+format:
+    html:
+        toc: true
+        toc-depth: 2
+        embed-resources: true
+        code-fold: true
+        code-summary: "Show the code"
+---
+
+```{r}
+library(sf)
+library(leaflet)
+library(terra)
+library(dplyr)
+
+# Load spatial EJ data
+ej_data_sp <- read_sf("data/ej_cases/ej_data_public.gpkg")
+
+# Define custom markers for EJ data
+icons <- awesomeIcons(
+  icon = ~ case_when(
+    ej_data_sp$cluster == "Reform cases" ~ "images/circle-svgrepo-com.svg",
+    ej_data_sp$cluster == "Resists cases" ~ "images/square-svgrepo-com.svg",
+    ej_data_sp$cluster == "Transform cases" ~ "images/circle-svgrepo-com.svg",
+    TRUE ~ "question-circle"
+  ),
+  iconColor = "white",
+  library = "fa",
+  markerColor = "transparent"
+)
+
+# Load biodiversity data
+biodiv <- rast("data/important_biodiversity_areas/minshort_speciestargetswithPA_esh10km_repruns10_ranked.tif")
+
+# Define projections
+web_mercator <- 4326 # EPSG:4326 for Leaflet '+proj=longlat +datum=WGS84'
+
+# Reproject biodiversity raster to Web Mercator
+biodiv_web <- project(biodiv, paste0("EPSG:", web_mercator))
+
+# Bin ranked priority areas (1-100) into 5 classes
+biodiv_web <- biodiv_web |>
+  tidyterra::mutate(
+    cats = cut(
+      minshort_speciestargetswithPA_esh10km_repruns10_ranked,
+      breaks = c(0, 10, 40, 60, 90, 100),
+      labels = c("Very High", "High", "Average", "Low", "Very Low")
+    )
+  ) |>
+  mutate(cats = factor(cats, levels = c("Very High", "High", "Average", "Low", "Very Low")))
+
+
+
+# Create Leaflet map
+leaflet() |>
+  # addTiles() |>
+  # Add biodiversity raster layer
+  addRasterImage(
+    biodiv_web,
+    colors = c("#2ca25f", "#74c476", "#a1d99b", "#c7e9c0", "#edf8e9"),
+    opacity = 0.7,
+    layerId = "Biodiversity"
+  ) |>
+  # Add legend for raster
+  addLegend(position = "bottomright",
+            colors = c("#2ca25f", "#74c476", "#a1d99b", "#c7e9c0", "#edf8e9"),
+            labels = c("Very High", "High", "Average", "Low", "Very Low"),
+            title = "Biodiversity Priority",
+            opacity = 0.7,
+            className = "info legend") |>
+  # Add legend for EJ clusters
+  addLegend(position = "bottomright",
+            colors = c("black", "pink", "blue"),
+            labels = c("Reform cases", "Resists cases", "Transform cases"),
+            title = "EJ Cluster",
+            opacity = 0.7,
+            className = "info legend") |>
+  # Add EJ spatial points with custom markers
+  addCircleMarkers(
+    data = ej_data_sp,
+    color = ~case_when(
+      cluster == "Reform cases" ~ "black",
+      cluster == "Resists cases" ~ "pink",
+      cluster == "Transform cases" ~ "blue",
+      TRUE ~ "gray"
+    ),
+    radius = 6,
+    fillOpacity = 0.5,
+    label = ~cluster
+  ) |>
+  
+  # Set initial view
+  setView(lng = 0, lat = 0, zoom = 2)
+```
