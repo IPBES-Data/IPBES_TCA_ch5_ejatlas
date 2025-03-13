@@ -1,12 +1,20 @@
+
+
+[![CC BY-NC-SA 4.0](https://licensebuttons.net/l/by-nc-sa/4.0/88x31.png)](https://creativecommons.org/licenses/by-nc-sa/4.0/) 
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15005038.svg)](https://doi.org/10.5281/zenodo.15005038)
+
+The data of `the ej-cases` has been provided by [EJAtlas <img src="images/ejatlas-logo.png" alt="EJAtlas Logo" style="height:1em;">](https://ejatlas.org) and re-published, after anonymisation, with permission under the DOI [10.5281/zenodo.15005038](https://doi.org/10.5281/zenodo.15005038)
+
 # Mapping EJ cases in biodiversity priority areas
 
 This repository is part of the Transformative Change Assessment.
 
 The authors do not take any responsibility for its content or the correct working of the code. If scripts in here wipe your data, you are on your own.
 
-Nevertheless, please feel free to browse the code and re-use it at your own risk. 
+Re-use of the code is at own risk.
 
-Once finalised, the final repo will be published on Zenodo 
+Usage of the data 
 
 ## Metadata
 
@@ -30,5 +38,4 @@ Once finalised, the final repo will be published on Zenodo
 - **`outputs`**: figures or other outputs created during the running of the code.
 - **`R`**: R scripts used to run the code in the repo. Files in this folder will be sourced initially.
 
-## Interactive map
-- [Fig SPM.11](Fig_SPM_11_dynamic.html)
+![](outputs/priority_map_w_clusters_10k.svg)
